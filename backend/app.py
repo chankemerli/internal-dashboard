@@ -2,11 +2,11 @@ from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
-# models.py içindeki db, Client, Project, Worklog import ediliyor
+
 from models import db, Client, Project, Worklog
 
 app = Flask(__name__)
-CORS(app)  # CORS izinlerini açıyoruz
+CORS(app)  
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -26,6 +26,11 @@ def get_clients():
 def get_projects_for_client(client_id):
     projects = Project.query.filter_by(client_id=client_id).all()
     return jsonify([{'id': p.id, 'name': p.name} for p in projects])
+
+@app.route('/projects')
+def get_projects():
+    projects = Project.query.all()
+    return jsonify([{'id': p.id, 'name': p.name, 'client_id': p.client_id} for p in projects])
 
 @app.route('/worklog', methods=['POST'])
 def add_worklog():
