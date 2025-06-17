@@ -34,3 +34,28 @@ Initially experienced connection issues due to Docker containers not running cor
 Minor issues with and terminal usage, which were resolved.
 
 Import and session errors during Flask app context usage were fixed.
+
+Week 3:
+Added Developer and Worklog models in models.py.
+
+Created REST API endpoints in app.py:
+
+GET /developers – Returns all developers.
+
+POST /worklog – Adds a worklog entry for a developer.
+
+Updated and ran seed.py to insert:
+
+Sample clients, projects, and developers into the database.
+
+Verified the following API routes:
+
+http://localhost:5000/clients
+
+http://localhost:5000/projects
+
+http://localhost:5000/developers
+
+Backend service restarted successfully with Docker Compose.
+
+All endpoints tested and responded correctly.
