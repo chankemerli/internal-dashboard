@@ -59,3 +59,13 @@ http://localhost:5000/developers
 Backend service restarted successfully with Docker Compose.
 
 All endpoints tested and responded correctly.
+
+
+Week 4 Progress Summary
+
+- Implemented and tested full database models: Client, Project, Developer, Worklog.
+- Backend endpoints for all major entities were created using Flask.
+- Integrated ML microservice with overload prediction endpoint.
+- Frontend connected to backend to fetch and list clients.
+- Docker Compose used to run backend, ML service, and frontend.
+- Successfully tested end-to-end data flow.
