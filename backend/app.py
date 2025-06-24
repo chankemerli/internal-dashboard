@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
+import requests  # ML servisine istek atmak için
 
 from models import db, Client, Project, Worklog, Developer
 
@@ -80,6 +81,40 @@ def add_worklog():
     db.session.commit()
 
     return jsonify({'message': '✅ Worklog added successfully!'})
+
+# ---- ML OVERLOAD CHECK ----
+@app.route('/developers/<int:developer_id>/risk')
+def check_developer_risk(developer_id):
+    # Worklog'lardan kaç saat çalıştığını ve kaç projede çalıştığını bul
+    worklogs = Worklog.query.filter_by(developer_id=developer_id).all()
+    total_hours = sum([w.hours for w in worklogs])
+    project_ids = list({w.project_id for w in worklogs})
+    project_count = len(project_ids)
+
+    # Şu an kritik görev sayısını sabit alalım (opsiyonel: veritabanına sonra eklenebilir)
+    critical_tasks = 2
+
+    try:
+        # ML servisinin URL'si (Docker'da servisin adı ile çalışır)
+        ml_url = 'http://ml_service:8500/predict'
+        params = {
+            'projects': project_count,
+            'hours': total_hours,
+            'critical': critical_tasks
+        }
+        response = requests.get(ml_url, params=params, timeout=3)
+        prediction = response.json()
+    except Exception as e:
+        return jsonify({'error': 'ML servisine erişilemedi', 'details': str(e)}), 500
+
+    return jsonify({
+        'developer_id': developer_id,
+        'projects': project_count,
+        'hours': total_hours,
+        'critical_tasks': critical_tasks,
+        'overloaded': prediction.get('overloaded'),
+        'risk_score': prediction.get('risk_score')
+    })
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
