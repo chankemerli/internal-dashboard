@@ -1,61 +1,59 @@
-# Internal Dashboard - Week 1
 
---Week 1:
+# Internal Dashboard
 
-- Setup Python backend in Docker
-- Display a simple message from the backend: **"Hello backend!"**
-- Push the project to GitHub
+## Project Overview
+Internal Dashboard is a fully integrated web application designed to manage clients, projects, developers, and worklogs within a company. The backend is built with Flask, and the frontend is developed with React. All services can be run via Docker Compose.
 
-Run:
+---
+
+## Running Instructions
+
+Make sure Docker and Docker Compose are installed.
 
 ```bash
 docker compose up --build
+```
 
-# Internal Dashboard - Week 2
---Week 2:
-Accomplishments this week:
-Completion of project structure and creation of basic files.
+This command will start backend, frontend, and ML service containers.
 
-Setup of Flask/FastAPI application on the backend.
+---
 
-Creation of database models (Client model).
+## Loading Sample Data
 
-Preparation of Docker Compose configuration and running containers.
+To load sample data, run the `load_sample_data.py` script located in the backend folder:
 
-Adding and testing Client data for basic CRUD operations.
+```bash
+python load_sample_data.py
+```
 
-Establishing basic connection between frontend and backend.
+This will insert sample clients, projects, developers, and worklogs into the database.
 
-Data insertion into the database and validation.
+---
 
---Obstacles encountered:
-Initially experienced connection issues due to Docker containers not running correctly.
+## API Endpoints
 
-Minor issues with and terminal usage, which were resolved.
+The backend service provides the following API endpoints:
 
-Import and session errors during Flask app context usage were fixed.
+- `GET /clients` — List all clients
+- `GET /clients/<id>` — Get details of a specific client
+- `GET /clients/<id>/projects` — Get projects for a client
+- `GET /developers` — List all developers
+- `POST /worklog` — Add a worklog entry for a developer
+- `GET /developers/<id>/risk` — Analyze developer risk status
 
-Week 3:
-Added Developer and Worklog models in models.py.
+---
 
-Created REST API endpoints in app.py:
+## Frontend
 
-GET /developers – Returns all developers.
+- React-based frontend displays the client list at `/`.
+- Clicking on a client name shows client details and projects.
+- Accessible at `localhost:3000`.
 
-POST /worklog – Adds a worklog entry for a developer.
 
-Updated and ran seed.py to insert:
+## Issues and Fixes
 
-Sample clients, projects, and developers into the database.
+- Resolved Docker container connectivity issues.
+- Fixed Flask app context errors.
+- Added error handling for data loading and API requests.
 
-Verified the following API routes:
 
-http://localhost:5000/clients
-
-http://localhost:5000/projects
-
-http://localhost:5000/developers
-
-Backend service restarted successfully with Docker Compose.
-
-All endpoints tested and responded correctly.
