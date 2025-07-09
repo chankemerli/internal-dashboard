@@ -26,6 +26,10 @@ ML_REQUEST_TIMEOUT = 3
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+@app.route('/health')
+def health():
+    return jsonify({"status": "healthy"}), 200
+
 @app.route('/')
 def home():
     return jsonify({'message': 'Backend is running!'})
@@ -74,7 +78,10 @@ def add_worklog():
         return jsonify({'error': 'Missing data'}), 400
 
     if not isinstance(hours, (int, float)):
-        return jsonify({'error': 'Invalid hours type'}), 400
+        try:
+            hours = float(hours)
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid hours type'}), 400
 
     worklog = Worklog(developer_id=developer_id, project_id=project_id, hours=hours)
     db.session.add(worklog)
