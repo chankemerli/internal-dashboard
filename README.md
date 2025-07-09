@@ -1,59 +1,39 @@
+week-6:
+Backend:
 
-# Internal Dashboard
+Added new /health endpoint for health check.
 
-## Project Overview
-Internal Dashboard is a fully integrated web application designed to manage clients, projects, developers, and worklogs within a company. The backend is built with Flask, and the frontend is developed with React. All services can be run via Docker Compose.
+Implemented routes to handle clients, projects, developers, and worklogs.
 
----
+Integrated a route to communicate with the ML service to assess developer risk.
 
-## Running Instructions
+Added error handling and logging for ML service communication.
 
-Make sure Docker and Docker Compose are installed.
+Machine Learning Service:
 
-```bash
-docker compose up --build
-```
+Set up the ML prediction endpoint (/predict).
 
-This command will start backend, frontend, and ML service containers.
+Ensured proper health checks and environment configuration.
 
----
+Frontend:
 
-## Loading Sample Data
+Connected frontend to backend API to display client and project data.
 
-To load sample data, run the `load_sample_data.py` script located in the backend folder:
+Ensured seamless data fetching and UI updates.
 
-```bash
-python load_sample_data.py
-```
+Docker:
 
-This will insert sample clients, projects, developers, and worklogs into the database.
+Improved docker-compose.yml to include healthchecks for all services.
 
----
+Set service dependencies for proper startup order.
 
-## API Endpoints
+Mapped ports and mounted volumes for local development convenience.
 
-The backend service provides the following API endpoints:
+Testing
+Verified all services start successfully with docker-compose up.
 
-- `GET /clients` — List all clients
-- `GET /clients/<id>` — Get details of a specific client
-- `GET /clients/<id>/projects` — Get projects for a client
-- `GET /developers` — List all developers
-- `POST /worklog` — Add a worklog entry for a developer
-- `GET /developers/<id>/risk` — Analyze developer risk status
+Accessed http://localhost:5000/health and confirmed backend health status.
 
----
+Tested frontend UI displays client lists correctly.
 
-## Frontend
-
-- React-based frontend displays the client list at `/`.
-- Clicking on a client name shows client details and projects.
-- Accessible at `localhost:3000`.
-
-
-## Issues and Fixes
-
-- Resolved Docker container connectivity issues.
-- Fixed Flask app context errors.
-- Added error handling for data loading and API requests.
-
-
+Validated ML service predictions through API calls.
