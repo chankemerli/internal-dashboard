@@ -2,26 +2,34 @@ from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
-import requests  # ML servisine istek atmak için
+import requests
+import os
+from dotenv import load_dotenv
+import logging
+
+load_dotenv()
 
 from models import db, Client, Project, Worklog, Developer
 
 app = Flask(__name__)
 CORS(app)
 
-# Config
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI', 'sqlite:///data.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Init DB and Migrate
+ML_SERVICE_URL = os.getenv('ML_SERVICE_URL', 'http://ml_service:8500/predict')
+ML_SERVICE_TIMEOUT = int(os.getenv('ML_SERVICE_TIMEOUT', '5'))
+
 db.init_app(app)
 migrate = Migrate(app, db)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @app.route('/')
 def home():
     return jsonify({'message': '✅ Backend is running!'})
 
-# ---- CLIENTS ----
 @app.route('/clients')
 def get_clients():
     clients = Client.query.all()
@@ -38,7 +46,6 @@ def get_projects_for_client(client_id):
         for p in projects
     ])
 
-# ---- PROJECTS ----
 @app.route('/projects')
 def get_projects():
     projects = Project.query.all()
@@ -47,7 +54,6 @@ def get_projects():
         for p in projects
     ])
 
-# ---- DEVELOPERS ----
 @app.route('/developers')
 def get_developers():
     developers = Developer.query.all()
@@ -59,13 +65,12 @@ def get_developers():
 @app.route('/developers/<int:developer_id>/projects')
 def get_projects_for_developer(developer_id):
     worklogs = Worklog.query.filter_by(developer_id=developer_id).all()
-    projects = list({w.project for w in worklogs})  # Set to avoid duplicates
+    projects = list({w.project for w in worklogs})
     return jsonify([
         {'id': p.id, 'name': p.name, 'client_id': p.client_id}
         for p in projects
     ])
 
-# ---- WORKLOG ----
 @app.route('/worklog', methods=['POST'])
 def add_worklog():
     data = request.get_json()
@@ -82,30 +87,31 @@ def add_worklog():
 
     return jsonify({'message': '✅ Worklog added successfully!'})
 
-# ---- ML OVERLOAD CHECK ----
 @app.route('/developers/<int:developer_id>/risk')
 def check_developer_risk(developer_id):
-    # Worklog'lardan kaç saat çalıştığını ve kaç projede çalıştığını bul
     worklogs = Worklog.query.filter_by(developer_id=developer_id).all()
-    total_hours = sum([w.hours for w in worklogs])
+    total_hours = sum(w.hours for w in worklogs)
     project_ids = list({w.project_id for w in worklogs})
     project_count = len(project_ids)
 
-    # Şu an kritik görev sayısını sabit alalım (opsiyonel: veritabanına sonra eklenebilir)
     critical_tasks = 2
 
+    params = {
+        'projects': project_count,
+        'hours': total_hours,
+        'critical': critical_tasks
+    }
+
     try:
-        # ML servisinin URL'si (Docker'da servisin adı ile çalışır)
-        ml_url = 'http://ml_service:8500/predict'
-        params = {
-            'projects': project_count,
-            'hours': total_hours,
-            'critical': critical_tasks
-        }
-        response = requests.get(ml_url, params=params, timeout=3)
+        response = requests.get(ML_SERVICE_URL, params=params, timeout=ML_SERVICE_TIMEOUT)
+        response.raise_for_status()
         prediction = response.json()
-    except Exception as e:
-        return jsonify({'error': 'ML servisine erişilemedi', 'details': str(e)}), 500
+    except requests.RequestException as e:
+        logger.error(f"ML service request failed: {e}")
+        return jsonify({'error': 'Service unavailable. Please try again later.'}), 503
+    except ValueError as e:
+        logger.error(f"Failed to decode ML service response: {e}")
+        return jsonify({'error': 'Invalid response from service.'}), 502
 
     return jsonify({
         'developer_id': developer_id,
