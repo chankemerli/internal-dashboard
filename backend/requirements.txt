@@ -1,4 +1,11 @@
 fastapi
 uvicorn
 flask
+flask
+flask_sqlalchemy
+flask-cors
+flask-migrate
+requests
+
+
 
